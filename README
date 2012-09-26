@@ -1,0 +1,4 @@
+Repository of code for the CS253 class at Missouri S&T in Fall 2012.
+
+This code implements a various number of sorting algorithms within a main class that will "drive"
+	the sorting algorithms to measure their runtime for various cases of best, worst, and average.
