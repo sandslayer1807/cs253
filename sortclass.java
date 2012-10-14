@@ -5,11 +5,11 @@ import java.util.Random;
  * @class Algorithms
  * @teacher: Bruce McMillin
  * @date 9/11/12
- * @assignment Assignment 1: Insertion Sort
+ * @assignment Assignment 1: Insertion Sort and Assignment 2: Add Heap Sort and Merge Sort functionality
  */
 
 
- // Insertion Sort implementation that includes driver to drive the program.
+ // Insertion Sort, Merge Sort, and Heap Sort implementation that includes driver to drive the program(s).
  //   Copyright (C) 2012  Ethan Wells
 
 //    This program is free software: you can redistribute it and/or modify
@@ -192,9 +192,62 @@ public class SortClass {
             assert(arrayToSort[i] <= arrayToSort[i+1]);                                        
         }
         return endTime;
-        
     }
     
+    public static int[] MergeSort(int[] arrayToSort)
+    {
+        if(arrayToSort.length <= 1)
+        {
+            return arrayToSort;
+        }
+        else
+        {
+            int middleOfArray = arrayToSort.length / 2;
+            int numbersLeft = arrayToSort.length - middleOfArray;
+            int[] arrayLeft = new int[middleOfArray];
+            int[] arrayRight = new int [numbersLeft];
+            System.arraycopy(arrayToSort, 0, arrayLeft, 0, middleOfArray);
+            System.arraycopy(arrayToSort, middleOfArray, arrayRight, 0, numbersLeft);
+            arrayLeft = MergeSort(arrayLeft);
+            arrayRight = MergeSort(arrayRight);
+            return Merge(arrayLeft, arrayRight);
+        }
+    }
+    
+    public static int[] Merge(int[] arrayLeft, int[] arrayRight)
+    {
+        int[] arrayResult = new int[ (arrayLeft.length + arrayRight.length) ];
+        int arrayLeftToSort=0;
+        int arrayRightToSort=0;
+        while ( (arrayLeft.length - arrayLeftToSort) > 0 || (arrayRight.length - arrayRightToSort) > 0 )
+        {
+            if( (arrayLeft.length - arrayLeftToSort) > 0 && (arrayRight.length - arrayRightToSort) > 0 )
+            {
+                if( arrayLeft[arrayLeftToSort] <= arrayRight[arrayRightToSort] )
+                {
+                    arrayResult[arrayLeftToSort + arrayRightToSort] = arrayLeft[arrayLeftToSort];
+                    arrayLeftToSort++;
+                }
+                else
+                {
+                    arrayResult[arrayLeftToSort + arrayRightToSort] = arrayRight[arrayRightToSort];
+                    arrayRightToSort++;
+                }
+            }
+            else if( (arrayLeft.length - arrayLeftToSort) > 0 )
+            {
+                arrayResult[arrayLeftToSort + arrayRightToSort] = arrayLeft[arrayLeftToSort];
+                arrayLeftToSort++;
+            }
+            else if( (arrayRight.length - arrayRightToSort) > 0 )
+            {
+                arrayResult[arrayLeftToSort + arrayRightToSort] = arrayRight[arrayRightToSort];
+                arrayRightToSort++;
+            }
+        }
+        return arrayResult;
+    }
+               
     public static int[] test()
     {
         //Testing for negative numbers
@@ -203,9 +256,7 @@ public class SortClass {
         for(int i = 0; i < 10; i++)
         {
             array[i] = (-1 - i);
-        }
-        
-        
+        }        
         return array;
     }
     
