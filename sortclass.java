@@ -59,21 +59,29 @@ public class SortClass {
         else                                                                                   
         {
            //else take these default values
-           passedArraySize = 7;
-           passedArrayEndSize = 3000;
+           passedArraySize = 700;
+           passedArrayEndSize = 5000;
            passedCase = 3;
-           numTimesToRun = 10;
+           numTimesToRun = 20;
         }    
         //For array values between min and max
         for(int k = passedArraySize; k <= passedArrayEndSize; k++)                            
         {  
-            int[] arrayToSort = new int[k];         //Create an array                                            
+            int[] arrayToSort = new int[k];         //Create an array   
+            long finalTime = 1000000;
             for(int i = numTimesToRun; i > 0; i--)
             {
                 arrayGen(arrayToSort, k, passedCase);
-                long tempWriteToArray=insertionSort(arrayToSort);      //And sort it.                         
-                System.out.println("Number of items: "+k+" and time (ns): "+
-                        tempWriteToArray);
+                long beginTime = System.nanoTime();
+                //long tempWriteToArray=insertionSort(arrayToSort);      //And sort it.
+                heapSort(arrayToSort);
+                long endTime = System.nanoTime() - beginTime;
+                if(endTime < finalTime)
+                {
+                    finalTime = endTime;
+                }
+                System.out.println("Number of items: "+k+" and time (ns): " +
+                        finalTime);
             }
         }
     }
@@ -193,59 +201,193 @@ public class SortClass {
         }
         return endTime;
     }
-    
-    public static int[] MergeSort(int[] arrayToSort)
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Method: public static int[] MergeSort(int[] arrayToSort)
+    // Description: Takes an array of integers, and using Merge Sort, splits the array into
+    //          halves and then merges them into a sorted array.
+    // Precondition: An array of integers must be passed (for the method to have
+    //          something to sort, although it will not break).
+    // Postcondition: Returns a sorted array that is built from merging the two "half"
+    //          arrays, and is therefore a permutation of the original array.
+    // Return: Returns a sorted array of integers built from the two "half" arrays.
+    ///////////////////////////////////////////////////////////////////////////
+    public static int[] mergeSort(int[] arrayToSort)
     {
+        //Asserting the precondition
+        //assert(arrayToSort.length > 0)
+        //Making sure that there is something to split in half.
         if(arrayToSort.length <= 1)
         {
             return arrayToSort;
         }
         else
         {
+            //Split the length of the passed in array by half.
             int middleOfArray = arrayToSort.length / 2;
+            //This below line is to deal with odd length arrays and making sure everything is sorted.
             int numbersLeft = arrayToSort.length - middleOfArray;
+            //Making the associated "half" arrays.
             int[] arrayLeft = new int[middleOfArray];
             int[] arrayRight = new int [numbersLeft];
+            //Filling the half arrays with the proper values.
             System.arraycopy(arrayToSort, 0, arrayLeft, 0, middleOfArray);
             System.arraycopy(arrayToSort, middleOfArray, arrayRight, 0, numbersLeft);
-            arrayLeft = MergeSort(arrayLeft);
-            arrayRight = MergeSort(arrayRight);
-            return Merge(arrayLeft, arrayRight);
+            //Recursive calls to continue splitting the half arrays until the length is <= 1.
+            arrayLeft = mergeSort(arrayLeft);
+            arrayRight = mergeSort(arrayRight);
+            //Final call to merge to sort the half arrays into a final sorted array.
+            //See the postcondition assert of Merge() to verify that the array is sorted.
+            return merge(arrayLeft, arrayRight);
         }
     }
-    
-    public static int[] Merge(int[] arrayLeft, int[] arrayRight)
+ 
+    ///////////////////////////////////////////////////////////////////////////
+    // Method: public static int[] Merge(int[] arrayLeft, int[] arrayRight)
+    // Description: Takes two arrays of integers (the split halves of the original array) and
+    //          sorts them piece by piece, returning the final product.
+    // Precondition: The two arrays being passed in are sorted.
+    // Postcondition: Returns a sorted array that is built from merging the two "half"
+    //          arrays, and is therefore a permutation of the original array.
+    // Return: Returns a sorted array of integers built from the two "half" arrays.
+    ///////////////////////////////////////////////////////////////////////////    
+    public static int[] merge(int[] arrayLeft, int[] arrayRight)
     {
+        //Creating result array to store the merged arrays.
         int[] arrayResult = new int[ (arrayLeft.length + arrayRight.length) ];
+        //Variables to store progress in their respective arrays.
         int arrayLeftToSort=0;
         int arrayRightToSort=0;
+        //While there are things to sort...
         while ( (arrayLeft.length - arrayLeftToSort) > 0 || (arrayRight.length - arrayRightToSort) > 0 )
         {
+            //assert invariant here
+            //If there are elements still in both arrays
             if( (arrayLeft.length - arrayLeftToSort) > 0 && (arrayRight.length - arrayRightToSort) > 0 )
             {
+                //If the item in the "left" array is smaller than the item in the "right" array
                 if( arrayLeft[arrayLeftToSort] <= arrayRight[arrayRightToSort] )
                 {
+                    //Copy that result to the left array and increment the left array counter
                     arrayResult[arrayLeftToSort + arrayRightToSort] = arrayLeft[arrayLeftToSort];
                     arrayLeftToSort++;
                 }
-                else
+                else  //the item in the right is smaller
                 {
                     arrayResult[arrayLeftToSort + arrayRightToSort] = arrayRight[arrayRightToSort];
                     arrayRightToSort++;
                 }
             }
+            //if the left array has items and the right array doesn't
             else if( (arrayLeft.length - arrayLeftToSort) > 0 )
             {
+                //Copy everything from the left array (as they're already sorted.
                 arrayResult[arrayLeftToSort + arrayRightToSort] = arrayLeft[arrayLeftToSort];
                 arrayLeftToSort++;
             }
+            //if the right array has items and the left doesn't
             else if( (arrayRight.length - arrayRightToSort) > 0 )
             {
+                //Copy everything from the right array as they're already sorted
                 arrayResult[arrayLeftToSort + arrayRightToSort] = arrayRight[arrayRightToSort];
                 arrayRightToSort++;
             }
         }
+        //Return the final sorted array.
         return arrayResult;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Method: public static void maxHeapify(int[] arrayToSort, int index, int sizeOfHeap)
+    // Description: Starting from the index passed, creates a max heap where the index is
+    //          the parent.
+    // Precondition: The left and right children of index are the roots of max heaps.
+    // Postcondition: The index is the root of a max heap.
+    // Return: Returns nothing, however modifies the passed in array via pass-by-reference.
+    ///////////////////////////////////////////////////////////////////////////  
+    public static void maxHeapify(int[] arrayToSort, int index, int sizeOfHeap)
+    {
+        //The children's indexes in the array are 2x the passed index, with the right being +1.
+        int leftChild = 2*index;
+        int rightChild = (2*index) + 1;
+        int largestNum;
+        //If the index of the left child is a valid size and if array[leftchild] is bigger than array[index].
+        if( leftChild < sizeOfHeap && arrayToSort[leftChild] > arrayToSort[index] )
+        {
+            //Set the largest number equal to the left child
+            largestNum = leftChild;
+        }
+        //Else, make sure the largest number is set to index (in case numbers are equal).
+        else
+        {
+            largestNum = index;
+        }
+        //If the index of the right child is a valid size and if array[rightchild] is bigger than array[index].
+        if( rightChild < sizeOfHeap && arrayToSort[rightChild] > arrayToSort[index] )
+        {
+            largestNum = rightChild;
+        }
+        //If largest num isn't the index
+        if( largestNum != index )
+        {
+            //Swap the largest number with the index
+            exchange(arrayToSort, index, largestNum);
+            //Call maxHeapify recursively on the new index
+            maxHeapify(arrayToSort, largestNum, sizeOfHeap);
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // Method: public static void buildMaxHeap(int[] arrayToSort)
+    // Description: Makes a max heap out of the passed in array rooted at one.
+    // Precondition: The array passed is a valid array of size n.
+    // Postcondition: Makes a max heap out of the passed in array rooted at one.
+    // Return: Returns nothing, but maxHeapify changes the array.
+    ///////////////////////////////////////////////////////////////////////////  
+    public static void buildMaxHeap(int[] arrayToSort)
+    {
+        //Runs down the tree, making sure all nodes are in compliance with a max heap.
+        for(int indexOfArray = (arrayToSort.length - 1); indexOfArray >= 0; indexOfArray--)
+        {
+            //Calling max heapify...
+            maxHeapify(arrayToSort, indexOfArray, arrayToSort.length);
+        }
+    }
+ 
+    ///////////////////////////////////////////////////////////////////////////
+    // Method: public static void heapSort(int[] arrayToSort)
+    // Description: Builds a max heap, and sorts the array using heap sort while
+    //          decrementing the "size of the heap", known as the size of the array,
+    //          meaning it sorts from right to left.
+    // Precondition: A is an array of size n.
+    // Postcondition: The passed in array is sorted and a permutation of the original array.
+    // Return: None, although modifies the array through pass-by-reference.
+    ///////////////////////////////////////////////////////////////////////////     
+    public static void heapSort(int[] arrayToSort)
+    {
+        //Builds the initial max heap
+        buildMaxHeap( arrayToSort );
+        //Declares the size of the heap as the size of the array.
+        int sizeOfHeap = arrayToSort.length;
+        
+        //From the end of the array to the beginning of the array
+        for( int i = arrayToSort.length - 1; i >= 1; i-- )
+        {
+            //Exchange the biggest item to the end of the array.
+            exchange(arrayToSort, 0, i);
+            //Decrease the working size of the array.
+            sizeOfHeap--;
+            //re-make the heap
+            maxHeapify( arrayToSort, 0, sizeOfHeap);
+        }
+    }
+    
+    //Simple function to aid in exchanging array values.
+    public static void exchange(int[] array, int num1, int num2)
+    {
+        int tempVar = array[num1];
+        array[num1] = array[num2];
+        array[num2] = tempVar;
     }
                
     public static int[] test()
