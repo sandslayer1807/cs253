@@ -29,16 +29,16 @@ import java.util.ArrayList;
 
 public class AdjacencyListGraph {
     
-    static ArrayList<ArrayList<Node>> cityList;
+    static ArrayList<ArrayList<Node>> cityList = new ArrayList<ArrayList<Node>>();
     
     public AdjacencyListGraph(int size)
     {
-        cityList = new ArrayList<ArrayList<Node>>();
+       
     }
-    //public static void addCity( City cityToAdd )
-    //{
-     //   cityList.get(cityToAdd.index).set(2, new Node(0, 0.0, 0));
-    //}
+    public static void addCity( City cityToAdd )
+    {
+       cityList.set(cityToAdd.index, new ArrayList<Node>());
+    }
     
     public ArrayList returnAdj(int indexOfCity)
     {
@@ -47,7 +47,8 @@ public class AdjacencyListGraph {
     
     public static void addNode( City origin, City destination, double weight)
     {
-        cityList.get(origin.index).set(destination.index,new Node(origin.index, weight, destination.index));
+        cityList.get(origin.index).add(new Node(origin.index,weight,destination.index));
+                //set(destination.index,new Node(origin.index, weight, destination.index));
        // cityList[destination.index].add(new Node(origin.index,weight,destination.index));
     }
 }
