@@ -25,12 +25,14 @@ package algorithmsproj4;
 //    You should have received a copy of the GNU General Public License
 //    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-public class City {
+public class City implements Comparable<City>{
 
     double latitude;
     double longitude;
     String name;
     int index;
+    double key;
+    int parent;
     
     public City (double lat, double long2, String nameIn, int indexOfCity)
     {
@@ -50,6 +52,16 @@ public class City {
     public String getName()
     {
         return name;
+    }
+    @Override
+    public int compareTo(City t)
+    {
+        if(this.key > t.key)
+            return 1;
+        else if (this.key == t.key)
+            return 0;
+        else
+            return -1;
     }
     
 }

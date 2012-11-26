@@ -10,7 +10,8 @@ package algorithmsproj4;
 
 //   Copyright (C) 2012  Ethan Wells
 
-import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 
 //    This program is free software: you can redistribute it and/or modify
@@ -28,7 +29,7 @@ import java.util.ArrayList;
 
 
 public class AdjacencyListGraph {
-    
+    /*
     static ArrayList<ArrayList<Node>> cityList = new ArrayList<ArrayList<Node>>();
     
     public AdjacencyListGraph(int size)
@@ -37,7 +38,10 @@ public class AdjacencyListGraph {
     }
     public static void addCity( City cityToAdd )
     {
-       cityList.set(cityToAdd.index, new ArrayList<Node>());
+        ArrayList<Node> test = new ArrayList<Node>();
+        test.add(new Node(cityToAdd.index, 0, cityToAdd.index));
+      // cityList.set(cityToAdd.index, new ArrayList<Node>());
+       cityList.set(cityToAdd.index, test);
     }
     
     public ArrayList returnAdj(int indexOfCity)
@@ -50,5 +54,23 @@ public class AdjacencyListGraph {
         cityList.get(origin.index).add(new Node(origin.index,weight,destination.index));
                 //set(destination.index,new Node(origin.index, weight, destination.index));
        // cityList[destination.index].add(new Node(origin.index,weight,destination.index));
+    }
+}
+ */
+    static List<Node>[] cityList;
+    
+    public AdjacencyListGraph()
+    {
+        cityList = new List[800];
+    }
+    
+    public static void addCity( City cityToAdd )
+    {
+       cityList[cityToAdd.index] = new LinkedList<Node>();
+       cityList[cityToAdd.index].add(new Node(cityToAdd.index,0,cityToAdd.index));
+    }
+    public static void addNode( City origin, City destination, double weight)
+    {
+        cityList[origin.index].add(new Node(destination.index,weight,origin.index));
     }
 }
