@@ -10,11 +10,11 @@ package algorithmsproj4;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Collections;
 
 //   Copyright (C) 2012  Ethan Wells
 
@@ -37,13 +37,6 @@ public class AlgorithmsProj4 {
         ArrayList<City> citiesOfUs = new ArrayList();
         initialize(citiesOfUs);
         primMST(citiesOfUs, 126); //Index of Washington, DC
-        for( City c : citiesOfUs)
-        {
-            if(c.parent == -1)
-            {
-                System.out.println(c.name);
-            }
-        }
         System.out.println("The cost: "+getCost(citiesOfUs));
         outputToKML(citiesOfUs);
     }
@@ -74,37 +67,35 @@ public class AlgorithmsProj4 {
             cityList.add(new City(toDecDeg(latDegrees,latMinutes), toDecDeg(longDegrees,longMinutes),name, indexOfCity));
             indexOfCity++;
         }
-        
+        System.out.println(cityList.size());
+        AdjacencyMatrixGraph.setSize(cityList.size());
         // Start initializing all the edges
         for( int i = 0; i < cityList.size(); i++)
         {
             for(int j = 0; j < cityList.size(); j++)
             {
-                if(i == j)
+                if(getDistance(cityList.get(i), cityList.get(j)) <= 30.0)
                 {
-                    continue;
+                   // System.out.println(cityList.get(i).name+ " "+ cityList.get(j).name);
+                    AdjacencyMatrixGraph.setCell(i, j, getDistance(cityList.get(i), cityList.get(j)));
+                }
+                else if ( i == j )
+                {
+                    AdjacencyMatrixGraph.setCell(i, j, Double.POSITIVE_INFINITY);
                 }
                 else
                 {
-                    if(getDistance(cityList.get(i), cityList.get(j)) <= 30.0)
-                    {
-                       // System.out.println(cityList.get(i).name+ " "+ cityList.get(j).name);
-                        AdjacencyMatrixGraph.setCell(i, j, getDistance(cityList.get(i), cityList.get(j)));
-                    }
-                    else
-                    {
-                       // AdjacencyMatrixGraph.setCell(i, j, Double.POSITIVE_INFINITY);
-                    }
+                     AdjacencyMatrixGraph.setCell(i, j, Double.POSITIVE_INFINITY);
                 }
-                    
             }
+                    
         }
     }
     
     public static void primMST(ArrayList<City> cityList, int indexOfRootCity)
     {
         cityList.get(indexOfRootCity).key = 0.0;
-        cityList.get(indexOfRootCity).parent = 0;
+        cityList.get(indexOfRootCity).parent = null;
         ArrayList<City> Q = new ArrayList<City>();
         Q.addAll(cityList);
         Collections.sort(Q);
@@ -117,13 +108,13 @@ public class AlgorithmsProj4 {
                 City v = it.next();
                 if( Q.contains(v) && AdjacencyMatrixGraph.getCell(u.index, v.index) < v.key )
                 {
-                    cityList.get(v.index).parent = cityList.get(u.index).index;
+                    cityList.get(v.index).parent = cityList.get(u.index);
                     cityList.get(v.index).key = AdjacencyMatrixGraph.getCell(u.index, v.index);
                 }
                 Collections.sort(Q);
                 if( Q.contains(v) && v.key < Double.POSITIVE_INFINITY)
                 {
-                    assert( v.parent != 0 );
+                    assert( v.parent != null );
                 }
                 
             }
@@ -135,9 +126,9 @@ public class AlgorithmsProj4 {
         double costInLeagues=0.0;
         for(City city : cityList)
         {
-            if(city.parent != 0);
+            if(city.parent != null);
             {
-                costInLeagues += AdjacencyMatrixGraph.getCell(city.index, city.parent);
+                costInLeagues += AdjacencyMatrixGraph.getCell(city.index, city.parent.index);
             }
         }
         return costInLeagues;
@@ -193,13 +184,13 @@ public class AlgorithmsProj4 {
 
 public static void outputCityPaths(ArrayList<City> citiesOfUs, PrintWriter out, City c)
 {
-            int parentOfI = citiesOfUs.get(c.index).parent;
+            City parentOfI = citiesOfUs.get(c.index).parent;
             out.println("<Placemark>");
-            out.println("<name>"+citiesOfUs.get(parentOfI).name+" and "+c.name+"</name>");
+            out.println("<name>"+parentOfI.name+" and "+c.name+"</name>");
             out.println("<LineString>");
             out.println("<extrude>1</extrude>");
             out.println("<coordinates>");
-            out.println("-"+citiesOfUs.get(c.index).longitude+","+citiesOfUs.get(c.index).latitude+",0 -"+citiesOfUs.get(parentOfI).longitude+","+citiesOfUs.get(parentOfI).latitude+",0");
+            out.println("-"+citiesOfUs.get(c.index).longitude+","+citiesOfUs.get(c.index).latitude+",0 -"+parentOfI.longitude+","+parentOfI.latitude+",0");
             out.println("</coordinates>");
             out.println("</LineString>");
             out.println("</Placemark>");

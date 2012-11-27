@@ -32,7 +32,8 @@ public class City implements Comparable<City>{
     String name;
     int index;
     double key;
-    int parent;
+   // int parent = -1;
+   City parent = null; 
     
     public City (double lat, double long2, String nameIn, int indexOfCity)
     {

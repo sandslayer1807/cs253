@@ -32,14 +32,13 @@ public class AdjacencyMatrixGraph {
     // size: |V|^2
     
     //variables
-   static double[][] adjMatrix = new double[1000][1000];
+   static double[][] adjMatrix;
     int sizeOfMatrix;
     
     // Constructor
-    public AdjacencyMatrixGraph (int size) {
-        adjMatrix = new double[size][size];
-        sizeOfMatrix = size;
-    }
+ //   public AdjacencyMatrixGraph (int size) {
+  //      adjMatrix = new double[size][size];
+ //   }
     // Getters & Setters
     public static double getCell (int firstDim, int secondDim) {
         return adjMatrix[firstDim][secondDim];
@@ -53,11 +52,15 @@ public class AdjacencyMatrixGraph {
         ArrayList<City> adj = new ArrayList(); // Arbitrary size that will be sure to contain all adj vertices.
         for( int i = 0; i < adjMatrix[indexToSearch].length; i++)
         {
-            if(adjMatrix[indexToSearch][i] > 0)
+            if(adjMatrix[indexToSearch][i] < Double.POSITIVE_INFINITY)
             {
                 adj.add(cityList.get(i));
             }
         }
         return adj;
+    }
+    public static void setSize( int size )
+    {
+        adjMatrix = new double[size][size];
     }
 }
