@@ -11,7 +11,6 @@ package algorithmsproj4;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,14 +33,40 @@ import java.util.logging.Logger;
 public class AlgorithmsProj4 {
 
     public static void main(String[] args) {
-        ArrayList<City> citiesOfUs = new ArrayList();
-        initialize(citiesOfUs);
-        primMST(citiesOfUs, 126); //Index of Washington, DC
-        System.out.println("The cost: "+getCost(citiesOfUs));
+        
+        // Now to run it multiple times...
+        int numTimesToRun = 1;
+        ArrayList<City> citiesOfUs = null;
+        AdjacencyListGraph adjGraph = null;
+        long startTime;
+        for( int i = 0; i <= 200; i++)
+        {
+            long bestTime = Long.MAX_VALUE;
+            for( int j = 0; j < numTimesToRun; j++)
+            {
+                //Initializing the local city array and the adjacency list.
+                citiesOfUs = new ArrayList();
+                adjGraph = new AdjacencyListGraph(800);
+                //Initialize the cities and edges
+                initialize(citiesOfUs, adjGraph);
+                //Start timing
+                startTime = System.nanoTime();
+                //Call Prim's algorithm on the adjacency list
+                primMST(citiesOfUs, 126, adjGraph); //Index of Washington, DC
+                //End time
+                long endTime = System.nanoTime() - startTime;
+                //If this endtime was better than others seen before, take it.
+                if( endTime < bestTime )
+                {
+                    bestTime = endTime;
+                }                
+            }
+    }
+        System.out.println("The cost: "+getCost(citiesOfUs, adjGraph));
         outputToKML(citiesOfUs);
     }
     
-    public static void initialize(ArrayList<City> cityList)
+    public static void initialize(ArrayList<City> cityList, AdjacencyListGraph adjGraph)
     {
         // Opening up file...
         Scanner inFile = null;
@@ -55,6 +80,7 @@ public class AlgorithmsProj4 {
         
         //Initializing Stuff
         int indexOfCity = 0;
+        //Reading in the file
         while( inFile.hasNext() )
         {
             String name = inFile.next();
@@ -62,73 +88,83 @@ public class AlgorithmsProj4 {
             int latMinutes = Integer.parseInt(inFile.next());
             int longDegrees = Integer.parseInt(inFile.next());
             int longMinutes = Integer.parseInt(inFile.next());
-            String whiteSpace = inFile.next();
-            
-            cityList.add(new City(toDecDeg(latDegrees,latMinutes), toDecDeg(longDegrees,longMinutes),name, indexOfCity));
+            String whiteSpace = inFile.next(); //To grab the newline off the end
+            City c = new City(toDecDeg(latDegrees,latMinutes), toDecDeg(longDegrees,longMinutes),name, indexOfCity);
+            //Add the city to the local city array and also the adjacency list.
+            cityList.add(c);
+            adjGraph.addCity(c);
             indexOfCity++;
-        }
-        System.out.println(cityList.size());
-        AdjacencyMatrixGraph.setSize(cityList.size());
+        }        
         // Start initializing all the edges
         for( int i = 0; i < cityList.size(); i++)
         {
             for(int j = 0; j < cityList.size(); j++)
             {
-                if(getDistance(cityList.get(i), cityList.get(j)) <= 30.0)
+                //If the distance between the two points is within 45 leagues and they're
+                //  not the same point, add the edge to the list.
+                if(getDistance(cityList.get(i), cityList.get(j)) <= 45.0 && i != j)
                 {
-                   // System.out.println(cityList.get(i).name+ " "+ cityList.get(j).name);
-                    AdjacencyMatrixGraph.setCell(i, j, getDistance(cityList.get(i), cityList.get(j)));
-                }
-                else if ( i == j )
-                {
-                    AdjacencyMatrixGraph.setCell(i, j, Double.POSITIVE_INFINITY);
-                }
-                else
-                {
-                     AdjacencyMatrixGraph.setCell(i, j, Double.POSITIVE_INFINITY);
+                   adjGraph.addNode(cityList.get(i), cityList.get(j), getDistance(cityList.get(i), cityList.get(j)));
                 }
             }
                     
         }
     }
     
-    public static void primMST(ArrayList<City> cityList, int indexOfRootCity)
+    ///////////////////////////////////////////////////////////////////////////
+    // Method: public static void primMST (ArrayList<City> cityList, int indexOfRootCity,
+    //      AdjacencyListGraph adjGraph )
+    // Description: Implements Prim's algorithm for creating a minimal spanning tree (MST) from
+    //      the points given to it by the graph cityList.
+    // Precondition: There is a graph of vertices and edges, with the starting vertex in V.
+    // Postcondition: There is an MST stored in pi(v) for all v in V.
+    // Return: None.
+    ///////////////////////////////////////////////////////////////////////////
+    public static void primMST(ArrayList<City> cityList, int indexOfRootCity, AdjacencyListGraph adjGraph)
     {
         cityList.get(indexOfRootCity).key = 0.0;
         cityList.get(indexOfRootCity).parent = null;
         ArrayList<City> Q = new ArrayList<City>();
+        //Add the vertices to the queue.
         Q.addAll(cityList);
+        //Sort based on key value.
         Collections.sort(Q);
+        //While there are vertices to process
         while (!Q.isEmpty())
         {
-            
+            //Pop the one from the top
             City u = Q.remove(0);
-            
-            for (Iterator<City> it = AdjacencyMatrixGraph.returnAdj(cityList,u.index).iterator(); it.hasNext();) {
-                City v = it.next();
-                if( Q.contains(v) && AdjacencyMatrixGraph.getCell(u.index, v.index) < v.key )
+            //For each adjacent vertex
+            for ( Node v : adjGraph.returnAdj(u) )
+            {
+                //If the queue contains v and if the weight(u,v) < v's key
+                if( Q.contains(v.dest) && adjGraph.isConnected(u, v.dest) < v.dest.key )
                 {
-                    cityList.get(v.index).parent = cityList.get(u.index);
-                    cityList.get(v.index).key = AdjacencyMatrixGraph.getCell(u.index, v.index);
+                    //Update the parent of v to be u, and update the key.
+                    cityList.get(v.dest.index).parent = cityList.get(u.index);
+                    cityList.get(v.dest.index).key = adjGraph.isConnected(u, v.dest);
                 }
+                //Sort again after all the changes have been enacted.
                 Collections.sort(Q);
-                if( Q.contains(v) && v.key < Double.POSITIVE_INFINITY)
+                //Making sure that an initialized city that has an edge also has a parent
+                if( Q.contains(v.dest) && v.dest.key < Double.POSITIVE_INFINITY)
                 {
-                    assert( v.parent != null );
+                    assert( v.dest.parent != null );
                 }
-                
             }
 
         }
     }
-    public static double getCost( ArrayList<City> cityList)
+    //Function to get the cost of the edges in the tree, for the final answer to the project.
+    public static double getCost( ArrayList<City> cityList, AdjacencyListGraph adjGraph)
     {
         double costInLeagues=0.0;
         for(City city : cityList)
         {
-            if(city.parent != null);
+            //If there is a defined edge, add it.
+            if( city.key != Double.POSITIVE_INFINITY)
             {
-                costInLeagues += AdjacencyMatrixGraph.getCell(city.index, city.parent.index);
+                costInLeagues += city.key;
             }
         }
         return costInLeagues;
@@ -146,15 +182,17 @@ public class AlgorithmsProj4 {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return radiusOfEarth * c;
     }
-    
+    //Method to convert decimals to radians.
     public static double toRad( double degrees)
     {
         return (degrees)*(Math.PI/180.0);
     }
+    //Method to convert from DMS to decimal degrees
     public static double toDecDeg( int degrees, int minutes)
     {
         return (degrees+(double)(minutes)/60.0);
     }
+    //Method that outputs the vertices/edges in a way that the Google Earth API can pick it up.
     public static void outputToKML( ArrayList<City> citiesOfUs)
     {
         PrintWriter out = null;
@@ -165,11 +203,18 @@ public class AlgorithmsProj4 {
         }
         out.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         out.println("<kml xmlns=\"http://www.opengis.net/kml/2.2\"> <Document>");
-        System.out.println(citiesOfUs.size());
+        out.println("<Style id=\"20kleaguesUnderTheSea\">");
+        out.println("<IconStyle>");
+        out.println("<color>ffffffff</color>");
+        out.println("<colorMode>random</colorMode>");
+        out.println("<scale>1.05</scale>");
+        out.println("<Icon><href>http://www.freegreatdesign.com/files/images/7/3193-assorted-cool-icon-png-2.jpg</href></Icon>");
+        out.println("</IconStyle></Style>");
         for( City c : citiesOfUs )
         {
             out.println("<Placemark>");
             out.println("<name>"+c.name+"</name>");
+            out.println("<styleUrl>#20kleaguesUnderTheSea</styleUrl>");
             out.println("<description></description>");
             out.println("<Point>");
             out.println("<coordinates>-"+c.longitude+","+c.latitude+",0</coordinates>");
@@ -184,7 +229,9 @@ public class AlgorithmsProj4 {
 
 public static void outputCityPaths(ArrayList<City> citiesOfUs, PrintWriter out, City c)
 {
-            City parentOfI = citiesOfUs.get(c.index).parent;
+    if(c.parent != null)
+    {
+           City parentOfI = citiesOfUs.get(c.index).parent;
             out.println("<Placemark>");
             out.println("<name>"+parentOfI.name+" and "+c.name+"</name>");
             out.println("<LineString>");
@@ -194,6 +241,7 @@ public static void outputCityPaths(ArrayList<City> citiesOfUs, PrintWriter out, 
             out.println("</coordinates>");
             out.println("</LineString>");
             out.println("</Placemark>");
+    }
 
 }
 }

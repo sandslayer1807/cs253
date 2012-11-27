@@ -35,10 +35,6 @@ public class AdjacencyMatrixGraph {
    static double[][] adjMatrix;
     int sizeOfMatrix;
     
-    // Constructor
- //   public AdjacencyMatrixGraph (int size) {
-  //      adjMatrix = new double[size][size];
- //   }
     // Getters & Setters
     public static double getCell (int firstDim, int secondDim) {
         return adjMatrix[firstDim][secondDim];
@@ -59,6 +55,7 @@ public class AdjacencyMatrixGraph {
         }
         return adj;
     }
+    //Method to set the dimensions of the matrix
     public static void setSize( int size )
     {
         adjMatrix = new double[size][size];

@@ -25,9 +25,10 @@ package algorithmsproj4;
 public class Node {
 
     double weight;
-    int dest;
-    int indexOfSource;
-    public Node (int destination, double edgeWeight, int index)
+    City dest;
+    int indexOfSource; //Index of the source city
+    //Constructor
+    public Node (City destination, double edgeWeight, int index)
     {
         dest = destination;
         weight = edgeWeight;

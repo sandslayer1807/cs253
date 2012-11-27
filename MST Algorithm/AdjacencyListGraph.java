@@ -10,6 +10,7 @@ package algorithmsproj4;
 
 //   Copyright (C) 2012  Ethan Wells
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,48 +30,45 @@ import java.util.List;
 
 
 public class AdjacencyListGraph {
-    /*
-    static ArrayList<ArrayList<Node>> cityList = new ArrayList<ArrayList<Node>>();
-    
-    public AdjacencyListGraph(int size)
+
+    List<Node>[] cityList;
+    int currentIndex = 0;
+    //Constructor
+    public AdjacencyListGraph( int size )
     {
-       
+        cityList = new List[size];
     }
-    public static void addCity( City cityToAdd )
-    {
-        ArrayList<Node> test = new ArrayList<Node>();
-        test.add(new Node(cityToAdd.index, 0, cityToAdd.index));
-      // cityList.set(cityToAdd.index, new ArrayList<Node>());
-       cityList.set(cityToAdd.index, test);
-    }
-    
-    public ArrayList returnAdj(int indexOfCity)
-    {
-        return cityList.get(indexOfCity);
-    }
-    
-    public static void addNode( City origin, City destination, double weight)
-    {
-        cityList.get(origin.index).add(new Node(origin.index,weight,destination.index));
-                //set(destination.index,new Node(origin.index, weight, destination.index));
-       // cityList[destination.index].add(new Node(origin.index,weight,destination.index));
-    }
-}
- */
-    static List<Node>[] cityList;
-    
-    public AdjacencyListGraph()
-    {
-        cityList = new List[800];
-    }
-    
-    public static void addCity( City cityToAdd )
+    //Add a city/vertex to the list.
+    public void addCity( City cityToAdd )
     {
        cityList[cityToAdd.index] = new LinkedList<Node>();
-       cityList[cityToAdd.index].add(new Node(cityToAdd.index,0,cityToAdd.index));
     }
-    public static void addNode( City origin, City destination, double weight)
+    //Add a node (adjacent vertex) to the current vertex.
+    public void addNode( City origin, City destination, double weight)
     {
-        cityList[origin.index].add(new Node(destination.index,weight,origin.index));
+        cityList[origin.index].add(new Node(destination,weight,origin.index));
+    }
+    //Returns an arraylist of nodes that represent the adjacent vertices to the given
+    //  vertex.
+    public ArrayList<Node> returnAdj( City origin)
+    {
+        ArrayList<Node> nodeList = new ArrayList<Node>();
+        for( Node n : cityList[origin.index])
+        {
+            nodeList.add(n);
+        }
+        return nodeList;
+    }
+    //Method that checks if the nodes are connected, then returns the edge weight.
+    public double isConnected( City origin, City destination)
+    {
+        for( Node n : cityList[origin.index])
+        {
+            if( n.dest == destination)
+            {
+                return n.weight;
+            }
+        }
+        return 0.0;
     }
 }

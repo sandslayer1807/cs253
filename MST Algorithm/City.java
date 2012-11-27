@@ -31,10 +31,9 @@ public class City implements Comparable<City>{
     double longitude;
     String name;
     int index;
-    double key;
-   // int parent = -1;
-   City parent = null; 
-    
+    double key = Double.POSITIVE_INFINITY;
+    City parent = null; 
+    //Constructor
     public City (double lat, double long2, String nameIn, int indexOfCity)
     {
         latitude = lat;
@@ -42,6 +41,7 @@ public class City implements Comparable<City>{
         name = nameIn;
         index = indexOfCity;
     }
+    //Getter and Setter functions
     public double getLat()
     {
         return latitude;
@@ -54,6 +54,8 @@ public class City implements Comparable<City>{
     {
         return name;
     }
+    //Overriding the compareTo operation to provide sorting functionality based on
+    //  key value of the given cities.
     @Override
     public int compareTo(City t)
     {
