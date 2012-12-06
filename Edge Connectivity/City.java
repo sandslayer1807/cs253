@@ -32,7 +32,9 @@ public class City implements Comparable<City>{
     String name;
     int index;
     double key = Double.POSITIVE_INFINITY;
-    City parent = null; 
+    City parent = null;
+    //White = 0, Grey = 1, Black = 2
+    int color = 0;
     //Constructor
     public City (double lat, double long2, String nameIn, int indexOfCity)
     {

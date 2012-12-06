@@ -70,7 +70,7 @@ public class AdjacencyListGraph {
                 return n.weight;
             }
         }
-        return 0.0;
+        return -1.0;
     }
     //Get available edge flow between two cities
     public double getEdgeFlow(City origin, City destination)
@@ -79,10 +79,12 @@ public class AdjacencyListGraph {
         {
             if(n.dest == destination)
             {
+                System.out.println(n.capacity-n.flow);
                 return n.capacity-n.flow;
+                
             }
         }
-        return 0.0;
+        return -1.0;
     }
     //Set available edge flow between two cities
     public void setEdgeFlow(City origin, City destination, double flow)
@@ -112,6 +114,17 @@ public class AdjacencyListGraph {
             for( Node e : adjGraph.cityList[i])
             {
                 residualGraph.cityList[i].add(e);
+            }
+        }
+    }
+    public void dumpEdges(ArrayList<City> cityArray)
+    {
+        for(int i = 0; i < cityArray.size(); i++)
+        {
+            for( Node n : cityList[i])
+            {
+                System.out.println("Source: "+cityArray.get(i).name+" Dest: "+n.dest.name+" edge flow: "+
+                        getEdgeFlow(cityArray.get(i),n.dest));
             }
         }
     }

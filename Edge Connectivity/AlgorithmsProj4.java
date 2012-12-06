@@ -47,13 +47,17 @@ public class AlgorithmsProj4 {
                 //Initializing the local city array and the adjacency list.
                 citiesOfUs = new ArrayList();
                 adjGraph = new AdjacencyListGraph(1000);
+                ArrayList<City> simpleCityList = new ArrayList();
+                AdjacencyListGraph adjSimple = new AdjacencyListGraph(5);
+                adjSimple = initializeSimple(simpleCityList);
                 //Initialize the cities and edges
-                initialize(citiesOfUs, adjGraph);
+                //initialize(citiesOfUs, adjGraph);
                 //Start timing
                 //startTime = System.nanoTime();
                 //Call Prim's algorithm on the adjacency list
               //  primMST(citiesOfUs, 126, adjGraph); //Index of Washington, DC
-                edmondsKarp(citiesOfUs,adjGraph,citiesOfUs.get(120),citiesOfUs.get(700));
+                
+                edmondsKarp(simpleCityList,adjSimple,simpleCityList.get(0),simpleCityList.get(4));
                 //End time
                // long endTime = System.nanoTime() - startTime;
                 //If this endtime was better than others seen before, take it.
@@ -65,6 +69,29 @@ public class AlgorithmsProj4 {
    // }
        // System.out.println("The cost: "+getCost(citiesOfUs, adjGraph));
       //  outputToKML(citiesOfUs);
+    }
+    
+    public static AdjacencyListGraph initializeSimple(ArrayList<City> simpleCityList)
+    {
+        AdjacencyListGraph adjSimple = new AdjacencyListGraph(5);
+        simpleCityList.add(new City(1,2,"node1",0));
+        simpleCityList.add(new City(3,4,"node2",1));
+        simpleCityList.add(new City(5,6,"node3",2));
+        simpleCityList.add(new City(7,8,"node4",3));
+        simpleCityList.add(new City(9,10,"node5",4));
+        System.out.println("Size of simpleCityList is:"+simpleCityList.size());
+        adjSimple.addCity(simpleCityList.get(0));
+        adjSimple.addCity(simpleCityList.get(1));
+        adjSimple.addCity(simpleCityList.get(2));
+        adjSimple.addCity(simpleCityList.get(3));
+        adjSimple.addCity(simpleCityList.get(4));
+        adjSimple.addNode(simpleCityList.get(0),simpleCityList.get(1), 1, 0);
+        adjSimple.addNode(simpleCityList.get(0), simpleCityList.get(2), 1, 0);
+        adjSimple.addNode(simpleCityList.get(1),simpleCityList.get(3),1,0);
+        adjSimple.addNode(simpleCityList.get(3),simpleCityList.get(4),1,0);
+        adjSimple.addNode(simpleCityList.get(2),simpleCityList.get(4),1,0);
+        adjSimple.dumpEdges(simpleCityList);
+        return adjSimple;
     }
     
     public static void initialize(ArrayList<City> cityList, AdjacencyListGraph adjGraph)
@@ -103,7 +130,7 @@ public class AlgorithmsProj4 {
             {
                 //If the distance between the two points is within 75 leagues and they're
                 //  not the same point, add the edge to the list.
-                if(getDistance(cityList.get(i), cityList.get(j)) <= 15.0 && i != j)
+                if(getDistance(cityList.get(i), cityList.get(j)) <= 75.0 && i != j)
                 {
                    adjGraph.addNode(cityList.get(i), cityList.get(j), getDistance(cityList.get(i), cityList.get(j)),0);
                 }
@@ -157,63 +184,74 @@ public class AlgorithmsProj4 {
         }
     }
     
-    public static ArrayList dijkstraSSSP(ArrayList<City> cityList, AdjacencyListGraph adjGraph, City source, City destination)
+    
+    public static ArrayList bfSSSP(ArrayList<City> cityList, AdjacencyListGraph adjGraph, City source, City destination)
     {
-        cityList.get(source.index).key = 0.0;
-        cityList.get(source.index).parent = null;
+        final int white = 0, gray = 1, black = 2;
         ArrayList<City> Q = new ArrayList<City>();
-        //Add the vertices to the queue.
         Q.addAll(cityList);
-        //Sort based on key value.
-        Collections.sort(Q);
-        //While there are vertices to process
+        for (City c : cityList)
+        {
+            c.color = 0;
+        }
+        source.color = gray;
+        Q.add(source);
         while (!Q.isEmpty())
         {
-            //Pop the one from the top
-            City u = Q.remove(0);
-            //For each adjacent vertex
-            for ( Node v : adjGraph.returnAdj(u) )
+            City t = Q.remove(0);
+            for( Node v : adjGraph.returnAdj(t))
             {
-                //if a path to v is less efficient than some other path to v
-                if( v.dest.key > u.key + adjGraph.isConnected(u, v.dest) )
+                if(v.dest.color == white)
                 {
-                    //Update the parent of v to be u, and update the key.
-                    cityList.get(v.dest.index).parent = cityList.get(u.index);
-                    cityList.get(v.dest.index).key = u.key + adjGraph.isConnected(u, v.dest);
+                    v.dest.parent = t;
+                    v.dest.color = gray;
+                    Q.add(v.dest);
                 }
-                //Sort again after all the changes have been enacted.
-                Collections.sort(Q);
             }
+            t.color = black;
         }
-        
         ArrayList<City> pathToDest = new ArrayList<City>();
-        City tmp = destination;
-        while (tmp.parent != null)
+        City temp = destination;
+        while(temp.parent != null)
         {
-            pathToDest.add(0, tmp.parent);
-            tmp = tmp.parent;
+            pathToDest.add(0, temp);
+            System.out.println(temp.name);
+            temp = temp.parent;
         }
-        pathToDest.add(0, tmp);
-        return pathToDest;
+        pathToDest.add(0,temp);
+        if(pathToDest.size() == 1)
+        {
+            return null;
+        }
+        else
+        {
+            //adjGraph.dumpEdges(pathToDest);
+            return pathToDest;
+        }
     }
     
     public static void edmondsKarp(ArrayList<City> cityList, AdjacencyListGraph adjGraph, City origin, City dest)
     {
-        ArrayList<City> pathToDest = dijkstraSSSP(cityList, buildResidual(cityList, adjGraph), origin, dest);
+        System.out.println("Entering the build residual phase/dijkstra's algo");
+        ArrayList<City> pathToDest = bfSSSP(cityList, buildResidual(cityList, adjGraph), origin, dest);
+        System.out.println("Successfully navigated dijkstra's and residual build");
         while( pathToDest != null)
         {
             for( int i = 1; i < pathToDest.size(); i++)
             {
-                if(adjGraph.isConnected(pathToDest.get(i-1), pathToDest.get(i)) > 0)
+                if(adjGraph.getEdgeFlow(pathToDest.get(i-1), pathToDest.get(i)) > 0)
                 {
-                    adjGraph.setEdgeFlow(pathToDest.get(i-1),pathToDest.get(i), 0);
+                    System.out.println("Setting edge flow (good)");
+                    adjGraph.setEdgeFlow(pathToDest.get(i-1),pathToDest.get(i), 1);
                 }
                 else
                 {
-                    adjGraph.setEdgeFlow(pathToDest.get(i), pathToDest.get(i-1), 0);
+                   // System.out.println("Setting edge flow(okay?)");
+                   // adjGraph.setEdgeFlow(pathToDest.get(i), pathToDest.get(i-1), 0);
                 }
             }
-            pathToDest = dijkstraSSSP(cityList, buildResidual(cityList, adjGraph), origin, dest);
+            System.out.println("Building last residual in loop");
+            pathToDest = bfSSSP(cityList, buildResidual(cityList, adjGraph), origin, dest);
         }
     }
     
@@ -225,9 +263,11 @@ public class AlgorithmsProj4 {
             residualGraph.addCity(source);
             for( Node dest : adjGraph.returnAdj(source))
             {
-                if(adjGraph.getEdgeFlow(source, dest.dest) > 0)
+              //  residualGraph.addCity(dest.dest);
+                if(adjGraph.isConnected(source, dest.dest) > 0 && adjGraph.getEdgeFlow(source, dest.dest) > 0)
                 {
                     residualGraph.addNode(source, dest.dest, 1, adjGraph.getEdgeFlow(source, dest.dest));
+                   // residualGraph.addNode(dest.dest, source, 1, dest.flow);
                 }
             }
         }
